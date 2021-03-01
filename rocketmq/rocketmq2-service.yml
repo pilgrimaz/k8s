@@ -1,29 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: rocketmq2-ns
+  name: rocketmq2
   labels:
-    app: rocketmq2-ns
+    app: rocketmq2
 spec:
-  type: NodePort
+  type: ClusterIP
+#指定IP地址
+  clusterIP: 10.111.64.219
   ports:
     - port: 9876
       targetPort: 9876
-      nodePort: 30009
-      name: rmqser2
-  selector:
-    app: rocketmq2
-
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: rocketmq2-broker
-  labels:
-    app: rocketmq2-broker
-spec:
-  type: ClusterIP
-  ports:
+      name: rmqns2
     - port: 10961
       targetPort: 10961
       name: rmqbroker2

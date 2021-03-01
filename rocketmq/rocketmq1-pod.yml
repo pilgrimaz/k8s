@@ -34,7 +34,7 @@ spec:
               value: -Duser.home=/home/rocketmq
             - name: JAVA_OPT_EXT
               value:  -Xmn256m
-          command: ["sh","-c","mqnamesrv"]
+          command: ["sh","mqnamesrv"]
           ports:
             - containerPort: 9876
           volumeMounts:
@@ -56,8 +56,8 @@ spec:
             - name: TZ
               value: Asia/Shanghai
             - name: JAVA_OPT_EXT
-              value: -Duser.home=/home/rocketmq -Xms2048M -Xmx1024M -Xmn256m
-          command: [ "sh","-c","mqbroker -c /etc/rocketmq/broker-a.conf","autoCreateTopicEnable=true" ]
+              value: -Duser.home=/home/rocketmq -Xmx2048M -Xms1024M -Xmn256m
+          command: [ "sh","mqbroker",-c,"/etc/rocketmq/broker-a.conf","autoCreateTopicEnable=true" ]
           ports:
             - containerPort: 10909
             - containerPort: 10911
@@ -83,8 +83,8 @@ spec:
             - name: TZ
               value: Asia/Shanghai
             - name: JAVA_OPT_EXT
-              value: -Duser.home=/home/rocketmq -Xms2048M -Xmx1024M -Xmn256m
-          command: [ "sh","-c","mqbroker -c /etc/rocketmq/broker-a-s.conf","autoCreateTopicEnable=true" ]
+              value: -Duser.home=/home/rocketmq -Xmx2048M -Xms1024M -Xmn256m
+          command: [ "sh","mqbroker","-c","/etc/rocketmq/broker-a-s.conf","autoCreateTopicEnable=true" ]
           ports:
             - containerPort: 10919
             - containerPort: 10921
@@ -110,8 +110,8 @@ spec:
             - name: TZ
               value: Asia/Shanghai
             - name: JAVA_OPT_EXT
-              value: -Duser.home=/home/rocketmq -Xms2048M -Xmx1024M -Xmn256m
-          command: [ "sh","-c","mqbroker -c /etc/rocketmq/broker-a-s2.conf","autoCreateTopicEnable=true" ]
+              value: -Duser.home=/home/rocketmq -Xmx2048M -Xms1024M -Xmn256m
+          command: [ "sh","mqbroker","-c","/etc/rocketmq/broker-a-s2.conf","autoCreateTopicEnable=true" ]
           ports:
             - containerPort: 10929
             - containerPort: 10931
@@ -133,9 +133,8 @@ spec:
             path: /data1/rocketmq/store-1
             type: DirectoryOrCreate
         - name: vol-conf
-          hostPath:
-            path: /data1/rocketmq/conf
-            type: DirectoryOrCreate
+          configMap:
+            name: rocketmq-config
         - name: vol-logs-a
           hostPath:
             path: /data1/rocketmq/logs-1a
