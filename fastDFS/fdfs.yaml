@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fdfs1
+  labels:
+    name: fdfs1
+spec:
+  clusterIP: None
+  ports:
+  - name: tracker
+    port: 22122
+    targetPort: 22122
+  selector:
+    app: fdfs1
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: fdfs2
+  labels:
+    name: fdfs2
+spec:
+  clusterIP: None
+  ports:
+  - name: tracker
+    port: 22122
+    targetPort: 22122
+  selector:
+    app: fdfs2
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fdfs1
+  labels:
+    app: fdfs1
+spec:
+  serviceName: fdfs1
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdfs1
+  template:
+    metadata:
+      labels:
+        app: fdfs1
+    spec:
+      containers:
+        - name: tracker
+          image: pilgrima/fastdfs:6.0.7
+          imagePullPolicy: IfNotPresent
+          args: ["tracker"]
+          ports:
+            - containerPort: 22122
+        - name: fdfsstorage
+          image: pilgrima/fastdfs:6.0.7
+          imagePullPolicy: IfNotPresent
+          args: ["storage"]
+          env:
+            - name: GROUP_NAME
+              value: group1
+            - name: TRACKER_SERVER2
+              value: fdfs2-0.fdfs2.default.svc.cluster.local:22122
+          livenessProbe:
+            tcpSocket:
+              port: 23000
+            initialDelaySeconds: 20
+          volumeMounts:
+          - name: storagedata1
+            mountPath: /var/local/fdfs/storage/data
+        - name: fdfsstorage2
+          image: pilgrima/fastdfs:6.0.7
+          imagePullPolicy: IfNotPresent
+          args: ["storage"]
+          env:
+            - name: GROUP_NAME
+              value: group2
+            - name: PORT
+              value: "23001"
+            - name: LISTEN_PORT
+              value: "8889"
+            - name: TRACKER_SERVER2
+              value: fdfs2-0.fdfs2.default.svc.cluster.local:22122
+          livenessProbe:
+            tcpSocket:
+              port: 23001
+            initialDelaySeconds: 20
+          volumeMounts:
+          - name: storagedata2
+            mountPath: /var/local/fdfs/storage/data
+      volumes:
+      - name: storagedata1
+        nfs:
+          server: 192.168.177.70
+          path: /data1/fastdfs/storage_data1/data
+      - name: storagedata2
+        nfs:
+          server: 192.168.177.79
+          path: /data1/fastdfs/storage_data2/data
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fdfs2
+  labels:
+    app: fdfs2
+spec:
+  serviceName: fdfs2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdfs2
+  template:
+    metadata:
+      labels:
+        app: fdfs2
+    spec:
+      containers:
+        - name: tracker
+          image: pilgrima/fastdfs:6.0.7
+          imagePullPolicy: IfNotPresent
+          args: ["tracker"]
+          ports:
+            - containerPort: 22122
+        - name: fdfsstorage
+          image: pilgrima/fastdfs:6.0.7
+          imagePullPolicy: IfNotPresent
+          args: ["storage"]
+          env:
+            - name: GROUP_NAME
+              value: group1
+            - name: TRACKER_SERVER2
+              value: fdfs1-0.fdfs1.default.svc.cluster.local:22122
+          livenessProbe:
+            tcpSocket:
+              port: 23000
+            initialDelaySeconds: 20
+          volumeMounts:
+          - name: storagedata1
+            mountPath: /var/local/fdfs/storage/data
+        - name: fdfsstorage2
+          image: pilgrima/fastdfs:6.0.7
+          imagePullPolicy: IfNotPresent
+          args: ["storage"]
+          env:
+            - name: GROUP_NAME
+              value: group2
+            - name: PORT
+              value: "23001"
+            - name: LISTEN_PORT
+              value: "8889"
+            - name: TRACKER_SERVER2
+              value: fdfs1-0.fdfs1.default.svc.cluster.local:22122
+          livenessProbe:
+            tcpSocket:
+              port: 23001
+            initialDelaySeconds: 20
+          volumeMounts:
+          - name: storagedata2
+            mountPath: /var/local/fdfs/storage/data
+      volumes:
+      - name: storagedata1
+        nfs:
+          server: 192.168.177.79
+          path: /data1/fastdfs/storage_data1/data
+      - name: storagedata2
+        nfs:
+          server: 192.168.177.70
+          path: /data1/fastdfs/storage_data2/data
+
